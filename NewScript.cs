@@ -78,14 +78,32 @@ public class NewScript : MonoBehaviour
 
     private void SpawnModels(){
       GameObject knife_inst = Instantiate(knife, GetRandomPose(), Random.rotation);
+      //GameObject knife_inst = Instantiate(knife, new Vector3(0.0f, 0.5f, 0.2f), Random.rotation);
       knife_inst.name = "knife";
-      Vector2[] bb = GetBoundingBoxVertices(knife_inst.transform.GetChild(0).gameObject);
-      saveBoundingBox(bb);
+      knife_inst.transform.GetChild(0).gameObject.AddComponent<MeshCollider>();
+      float scale = Random.Range(1.0f, 4.0f);
+      knife_inst.transform.localScale = Vector3.Scale(new Vector3 (scale, scale, scale), knife_inst.transform.localScale);
+      bool visible = isVisible(knife_inst.transform.GetChild(0).gameObject);
+      if(visible == true){
+        Debug.Log("Knife is visible");
+        Vector2[] bb = GetBoundingBoxVertices(knife_inst.transform.GetChild(0).gameObject);
+        saveBoundingBox(bb);
+      } else { Debug.Log("Knife is not visible"); }
+
 
       GameObject knife_inst_a = Instantiate(knife_a, GetRandomPose(), Random.rotation);
+      //GameObject knife_inst_a = Instantiate(knife_a, new Vector3(0.0f, 0.5f, 0.2f), Random.rotation);
       knife_inst_a.name = "knife_a";
-      bb = GetBoundingBoxVertices(knife_inst_a.transform.GetChild(0).gameObject);
-      saveBoundingBox(bb);
+      knife_inst_a.transform.GetChild(0).gameObject.name = "default_a";
+      knife_inst_a.transform.GetChild(0).gameObject.AddComponent<MeshCollider>();
+      scale = Random.Range(1.0f, 4.0f);
+      knife_inst_a.transform.localScale = Vector3.Scale(new Vector3 (scale, scale, scale), knife_inst_a.transform.localScale);
+      visible = isVisible(knife_inst_a.transform.GetChild(0).gameObject);
+      if(visible == true){
+        Debug.Log("Knife_a is visible");
+        Vector2[] bb = GetBoundingBoxVertices(knife_inst_a.transform.GetChild(0).gameObject);
+        saveBoundingBox(bb);
+      } else { Debug.Log("Knife_a is not visible"); }
     }
 
 
@@ -126,20 +144,54 @@ public class NewScript : MonoBehaviour
         cam.targetTexture = originalTargetTexture;
     }
 
+    private bool isVisible(GameObject go){
+      string go_root_name = go.transform.root.name;
+      //Debug.Log(go.transform.root.name);
+      Mesh mesh = go.GetComponent<MeshFilter>().mesh;
+      Vector3[] verts = mesh.vertices;
+      for (int i = 0; i < verts.Length; i++) {
+        verts[i] = go.transform.TransformPoint(verts[i]);
+      }
+      bool visible = true;
+      foreach (Vector3 vert in verts){
+        RaycastHit hit;
+        Vector3 direction = vert - Camera.main.transform.position;
+        if (Physics.Raycast(Camera.main.transform.position, direction, out hit)){
+          //Debug.Log(hit.transform.root.name);
+          if (hit.transform.root.name == go_root_name){
+            continue;
+          } else {
+            visible = false;
+            Debug.DrawRay(Camera.main.transform.position, direction, Color.red, 240.0f);
+            //Debug.Log(go.transform.root.name + " occluded by " + hit.transform.root.name);
+          }
+        } else { Debug.DrawRay(Camera.main.transform.position, direction, Color.green, 240.0f); }
+      }
+      return visible;
+    }
+
     void Awake() {
+      /*
       background_plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-      background_plane.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+      background_plane.transform.position = new Vector3(0.0f, -5.0f, 0.0f);
       background_plane.transform.localScale = new Vector3(10.0f, 10.0f, 10.0f);
       Material new_mat = Resources.Load("Bricks Textures/Bricks Texture 01/Bricks Texture 01") as Material;
       background_plane.GetComponent<Renderer>().material = new_mat;
       background_plane.GetComponent<Renderer>().material.shader = Shader.Find("Unlit/Texture");
       background_plane.name = "Background";
+      */
 
     	knife = Resources.Load("Models/1_knife1/OBJ/Kitchenknife_lowpoly") as GameObject;
     	knife_a = Resources.Load("Models/1_knife1_a/OBJ/Kitchenknife_lowpoly") as GameObject;
+
+      if(File.Exists(textfile_path)){
+        File.Delete(textfile_path);
+      }
     }
 
-    void Start(){}
+    void Start(){
+      SpawnModels();
+    }
 
     // Update is called once per frame
     void Update(){
@@ -148,7 +200,7 @@ public class NewScript : MonoBehaviour
       if (frame_id < 30){
         string img_filename = "img_" + Time.frameCount.ToString() + ".png";
         string img_full_path = img_path + img_filename;
-        SpawnModels();
+
         SaveCameraRGB(img_full_path);
         DestroyAllModels();
       }
