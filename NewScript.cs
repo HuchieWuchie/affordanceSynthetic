@@ -5,11 +5,10 @@ using System.IO;
 
 public class NewScript : MonoBehaviour
 {
-    private GameObject background_plane;
-    private GameObject knife, knife_a;
-    private Material new_mat;
+    private GameObject knife, knife_a, background_plane;
     private static string textfile_path = "/home/daniel/unity_first_test/screenshots/boundingBoxes.txt";
-    private static string img_path = "/home/daniel/unity_first_test/screenshots/img_";
+    private static string img_path = "/home/daniel/unity_first_test/screenshots/";
+    //private Camera main_cam;
 
     //public static Vector3[] GetBoundingBoxVertices(GameObject go) {
     public static Vector2[] GetBoundingBoxVertices(GameObject go) {
@@ -89,42 +88,73 @@ public class NewScript : MonoBehaviour
       saveBoundingBox(bb);
     }
 
-    private void CaptureScreenshot(){
-      int idx = Time.frameCount;
-      string img_filename = idx.ToString() + ".png";
-      Debug.Log(img_path + img_filename);
-      //ScreenCapture.CaptureScreenshot(img_path);
-    }
 
-    private IEnumerator pacer(){
-      yield return SpawnModels();
-      yield return CaptureScreenshot();
-      yield return DestroyAllModels();
-    }
+    void SaveCameraRGB(string filename) {
+        var cam = GameObject.Find("Main Camera").GetComponent<Camera>();
+        int width = cam.pixelWidth;
+        int height = cam.pixelHeight;
+        int depth = 24;
+        bool needsRescale = false;
+        bool supportsAntialiasing = false;
 
+        var format = RenderTextureFormat.Default;
+        var readWrite = RenderTextureReadWrite.Default;
+        var antiAliasing = (supportsAntialiasing) ? Mathf.Max(1, QualitySettings.antiAliasing) : 1;
+
+        var finalRT = RenderTexture.GetTemporary(width, height, depth, format, readWrite, antiAliasing);
+        var renderRT = (!needsRescale) ? finalRT :
+            RenderTexture.GetTemporary(cam.pixelWidth, cam.pixelHeight, depth, format, readWrite, antiAliasing);
+        var tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+
+        var prevActiveRT = RenderTexture.active;
+        var prevCameraRT = cam.targetTexture;
+
+        // render to offscreen texture (readonly from CPU side)
+        RenderTexture.active = renderRT;
+        var originalTargetTexture = cam.targetTexture;
+        cam.targetTexture = renderRT;
+
+        cam.Render();
+
+        // read offsreen texture contents into the CPU readable texture
+        tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+        tex.Apply();
+
+        // encode texture into PNG
+        var bytes = tex.EncodeToPNG();
+        File.WriteAllBytes(filename, bytes);
+        cam.targetTexture = originalTargetTexture;
+    }
 
     void Awake() {
       background_plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
       background_plane.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
       background_plane.transform.localScale = new Vector3(10.0f, 10.0f, 10.0f);
-      new_mat = Resources.Load("Bricks Textures/Bricks Texture 01/Bricks Texture 01") as Material;
+      Material new_mat = Resources.Load("Bricks Textures/Bricks Texture 01/Bricks Texture 01") as Material;
       background_plane.GetComponent<Renderer>().material = new_mat;
-      //background_plane.GetComponent<Renderer>().material.shader = Shader.Find("Unlit/Texture");
+      background_plane.GetComponent<Renderer>().material.shader = Shader.Find("Unlit/Texture");
       background_plane.name = "Background";
 
     	knife = Resources.Load("Models/1_knife1/OBJ/Kitchenknife_lowpoly") as GameObject;
     	knife_a = Resources.Load("Models/1_knife1_a/OBJ/Kitchenknife_lowpoly") as GameObject;
     }
 
-    void Start(){
-
-    }
+    void Start(){}
 
     // Update is called once per frame
     void Update(){
-      //SpawnModels();
-      //CaptureScreenshot();
-      //DestroyAllModels();
-      StartCoroutine(pacer());
+      /*
+      int frame_id = Time.frameCount;
+      if (frame_id < 30){
+        string img_filename = "img_" + Time.frameCount.ToString() + ".png";
+        string img_full_path = img_path + img_filename;
+        SpawnModels();
+        SaveCameraRGB(img_full_path);
+        DestroyAllModels();
+      }
+      else {
+        Debug.Log("Frame_id > 30");
+      }
+      */
     }
 }
