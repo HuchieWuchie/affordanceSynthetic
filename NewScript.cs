@@ -157,29 +157,67 @@ public class NewScript : MonoBehaviour
         RaycastHit hit;
         Vector3 direction = vert - Camera.main.transform.position;
         if (Physics.Raycast(Camera.main.transform.position, direction, out hit)){
-          //Debug.Log(hit.transform.root.name);
+          //Debug.Log(go.transform.root.name + " occluded by " + hit.transform.root.name);
           if (hit.transform.root.name == go_root_name){
             continue;
           } else {
             visible = false;
             Debug.DrawRay(Camera.main.transform.position, direction, Color.red, 240.0f);
-            //Debug.Log(go.transform.root.name + " occluded by " + hit.transform.root.name);
+            Debug.Log(go.transform.root.name + " occluded by " + hit.transform.root.name);
           }
         } else { Debug.DrawRay(Camera.main.transform.position, direction, Color.green, 240.0f); }
       }
       return visible;
     }
 
+    private static void ExecPythonScript(){
+      System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
+      psi.FileName = "/usr/bin/python3";
+      var script = "/home/daniel/unity_first_test/generate_background.py";
+      psi.Arguments = $"\"{script}\"";
+      psi.UseShellExecute = false;
+      psi.CreateNoWindow = true;
+      psi.RedirectStandardOutput = true;
+      psi.RedirectStandardError = true;
+      using(System.Diagnostics.Process process = System.Diagnostics.Process.Start(psi)) {
+        Debug.Log("Launched the python script");
+      }
+    }
+
+    private void ChangeBackground(){
+      ExecPythonScript();
+      Texture2D tex = Resources.Load("Backgrounds/img") as Texture2D;
+      //Debug.Log(tex);
+      Material mat = new Material(Shader.Find("Unlit/Texture"));
+      mat.mainTexture = (Texture)tex;
+      background_plane.GetComponent<Renderer>().material = mat;
+    }
+
     void Awake() {
-      /*
       background_plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-      background_plane.transform.position = new Vector3(0.0f, -5.0f, 0.0f);
-      background_plane.transform.localScale = new Vector3(10.0f, 10.0f, 10.0f);
-      Material new_mat = Resources.Load("Bricks Textures/Bricks Texture 01/Bricks Texture 01") as Material;
-      background_plane.GetComponent<Renderer>().material = new_mat;
-      background_plane.GetComponent<Renderer>().material.shader = Shader.Find("Unlit/Texture");
+      background_plane.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+      float distance = Vector3.Distance(background_plane.transform.position, Camera.main.transform.position);
+      Debug.Log("distance" + distance.ToString());
+      var frustumHeight = 2.0f * distance * Mathf.Tan(Camera.main.fieldOfView * 0.5f * Mathf.Deg2Rad);
+      Debug.Log("frustumHeight" + frustumHeight.ToString());
+      float frustumWidth = frustumHeight * Camera.main.aspect;
+      Debug.Log("frustumWidth" + frustumHeight.ToString());
+      background_plane.transform.localScale = new Vector3(frustumWidth, 0.1f, frustumHeight/2f);
       background_plane.name = "Background";
+
+      /*
+      Vector3 temp = new Vector3(-frustumWidth/2.0f, 0.0f, -frustumHeight/2.0f);
+      GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+      cube.transform.position = temp;
+      Vector3 plane_scale = new Vector3(frustumWidth/2.0f, 0.01f, frustumHeight/2.0f);
       */
+
+
+      //Material new_mat = Resources.Load("Bricks Textures/Bricks Texture 01/Bricks Texture 01") as Material;
+      //background_plane.GetComponent<Renderer>().material = new_mat;
+      //background_plane.GetComponent<Renderer>().material.shader = Shader.Find("Unlit/Texture");
+      ChangeBackground();
+
 
     	knife = Resources.Load("Models/1_knife1/OBJ/Kitchenknife_lowpoly") as GameObject;
     	knife_a = Resources.Load("Models/1_knife1_a/OBJ/Kitchenknife_lowpoly") as GameObject;
@@ -195,6 +233,7 @@ public class NewScript : MonoBehaviour
 
     // Update is called once per frame
     void Update(){
+      //Debug.Log(Camera.main.aspect);
       /*
       int frame_id = Time.frameCount;
       if (frame_id < 30){
