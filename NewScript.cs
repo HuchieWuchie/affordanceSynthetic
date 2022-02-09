@@ -5,6 +5,7 @@ using System.IO;
 
 public class NewScript : MonoBehaviour
 {
+    private static int background_index = 0;
     private GameObject knife, knife_a, background_plane;
     private static string textfile_path = "/home/daniel/unity_first_test/screenshots/boundingBoxes.txt";
     private static string img_path = "/home/daniel/unity_first_test/screenshots/";
@@ -60,7 +61,8 @@ public class NewScript : MonoBehaviour
     }
 
     public Vector3 GetRandomPose(){
-      Vector3 camera_pos = Camera.main.ViewportToWorldPoint(new Vector3(Random.Range(0.1f, 0.9f), Random.Range(0.1f, 0.9f), 15));;
+      // TODO - Use camera y position as the base for ViewportToWorldPoint
+      Vector3 camera_pos = Camera.main.ViewportToWorldPoint(new Vector3(Random.Range(0.1f, 0.9f), Random.Range(0.1f, 0.9f), 15));
       Vector3 world_pos = new Vector3(camera_pos.x, camera_pos.y, camera_pos.z);
       return world_pos;
     }
@@ -77,22 +79,29 @@ public class NewScript : MonoBehaviour
     }
 
     private void SpawnModels(){
+      float scale;
+      bool visible;
+
       GameObject knife_inst = Instantiate(knife, GetRandomPose(), Random.rotation);
-      //GameObject knife_inst = Instantiate(knife, new Vector3(0.0f, 0.5f, 0.2f), Random.rotation);
+      //GameObject knife_inst = Instantiate(knife, new Vector3(0.0f, 2.5f, 0.0f), Random.rotation);
       knife_inst.name = "knife";
       knife_inst.transform.GetChild(0).gameObject.AddComponent<MeshCollider>();
-      float scale = Random.Range(1.0f, 4.0f);
+      scale = Random.Range(1.0f, 4.0f);
       knife_inst.transform.localScale = Vector3.Scale(new Vector3 (scale, scale, scale), knife_inst.transform.localScale);
-      bool visible = isVisible(knife_inst.transform.GetChild(0).gameObject);
+      Physics.SyncTransforms();
+      visible = isVisible(knife_inst.transform.GetChild(0).gameObject);
       if(visible == true){
         Debug.Log("Knife is visible");
         Vector2[] bb = GetBoundingBoxVertices(knife_inst.transform.GetChild(0).gameObject);
         saveBoundingBox(bb);
-      } else { Debug.Log("Knife is not visible"); }
+      } else {
+        Debug.Log("Knife is not visible. Deleting");
+        Destroy(knife_inst);
+      }
 
 
       GameObject knife_inst_a = Instantiate(knife_a, GetRandomPose(), Random.rotation);
-      //GameObject knife_inst_a = Instantiate(knife_a, new Vector3(0.0f, 0.5f, 0.2f), Random.rotation);
+      //GameObject knife_inst_a = Instantiate(knife_a, new Vector3(5.0f, 2.5f, 0.0f), Random.rotation);
       knife_inst_a.name = "knife_a";
       knife_inst_a.transform.GetChild(0).gameObject.name = "default_a";
       knife_inst_a.transform.GetChild(0).gameObject.AddComponent<MeshCollider>();
@@ -103,7 +112,12 @@ public class NewScript : MonoBehaviour
         Debug.Log("Knife_a is visible");
         Vector2[] bb = GetBoundingBoxVertices(knife_inst_a.transform.GetChild(0).gameObject);
         saveBoundingBox(bb);
-      } else { Debug.Log("Knife_a is not visible"); }
+      } else {
+        Debug.Log("Knife_a is not visible. Deleting.");
+        Destroy(knife_inst_a);
+      }
+
+
     }
 
 
@@ -145,20 +159,26 @@ public class NewScript : MonoBehaviour
     }
 
     private bool isVisible(GameObject go){
+      bool visible = true;
       string go_root_name = go.transform.root.name;
       //Debug.Log(go.transform.root.name);
       Mesh mesh = go.GetComponent<MeshFilter>().mesh;
       Vector3[] verts = mesh.vertices;
       for (int i = 0; i < verts.Length; i++) {
         verts[i] = go.transform.TransformPoint(verts[i]);
+        Vector2 vert_camera_pos = Camera.main.WorldToViewportPoint(verts[i]);
+        if (vert_camera_pos.x > 1.0f || vert_camera_pos.y > 1.0f || vert_camera_pos.x < 0.0f || vert_camera_pos.y < 0.0f){
+          visible = false;
+          return visible;
+        }
       }
-      bool visible = true;
       foreach (Vector3 vert in verts){
         RaycastHit hit;
         Vector3 direction = vert - Camera.main.transform.position;
         if (Physics.Raycast(Camera.main.transform.position, direction, out hit)){
           //Debug.Log(go.transform.root.name + " occluded by " + hit.transform.root.name);
           if (hit.transform.root.name == go_root_name){
+            Debug.DrawRay(Camera.main.transform.position, direction, Color.blue, 240.0f);
             continue;
           } else {
             visible = false;
@@ -170,54 +190,41 @@ public class NewScript : MonoBehaviour
       return visible;
     }
 
-    private static void ExecPythonScript(){
-      System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
-      psi.FileName = "/usr/bin/python3";
-      var script = "/home/daniel/unity_first_test/generate_background.py";
-      psi.Arguments = $"\"{script}\"";
-      psi.UseShellExecute = false;
-      psi.CreateNoWindow = true;
-      psi.RedirectStandardOutput = true;
-      psi.RedirectStandardError = true;
-      using(System.Diagnostics.Process process = System.Diagnostics.Process.Start(psi)) {
-        Debug.Log("Launched the python script");
-      }
-    }
 
-    private void ChangeBackground(){
-      ExecPythonScript();
-      Texture2D tex = Resources.Load("Backgrounds/img") as Texture2D;
-      //Debug.Log(tex);
+    private void ChangeBackgroundTexture(){
+      int idx = background_index;
+      string to_load = "Backgrounds/img_" + idx.ToString();
+      Texture2D tex = Resources.Load(to_load) as Texture2D;
       Material mat = new Material(Shader.Find("Unlit/Texture"));
       mat.mainTexture = (Texture)tex;
       background_plane.GetComponent<Renderer>().material = mat;
+      background_index++;
+    }
+
+    private void SpawnBackground(){
+      background_plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+      background_plane.transform.position = new Vector3(0.0f, -100.0f, 0.0f);
+      // TODO - Get the distance from the camera pose
+      float distance = 120f;
+      float frustumHeight = 2.0f * distance * Mathf.Tan(Camera.main.fieldOfView * 0.5f * Mathf.Deg2Rad);
+      float frustumWidth = frustumHeight * Camera.main.aspect;
+      //Renderer rend = background_plane.GetComponent<Renderer>();
+      Vector3 plane_bounds = background_plane.GetComponent<Renderer>().bounds.extents;
+      background_plane.transform.localScale = new Vector3(frustumWidth/plane_bounds.x/2f, 0.0f, frustumHeight/plane_bounds.z/2f);
+      background_plane.name = "Background";
+      Physics.SyncTransforms();
+      Vector3 plane_collider_bounds = background_plane.GetComponent<Collider>().bounds.extents;
+      Debug.Log("Collider bounds " + plane_collider_bounds.ToString());
+    }
+
+    private void SetupCamera(){
+      Camera.main.transform.Rotate(90, 0, 0);
+    	Camera.main.transform.position = new Vector3(0, 20, 0);
     }
 
     void Awake() {
-      background_plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-      background_plane.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-      float distance = Vector3.Distance(background_plane.transform.position, Camera.main.transform.position);
-      Debug.Log("distance" + distance.ToString());
-      var frustumHeight = 2.0f * distance * Mathf.Tan(Camera.main.fieldOfView * 0.5f * Mathf.Deg2Rad);
-      Debug.Log("frustumHeight" + frustumHeight.ToString());
-      float frustumWidth = frustumHeight * Camera.main.aspect;
-      Debug.Log("frustumWidth" + frustumHeight.ToString());
-      background_plane.transform.localScale = new Vector3(frustumWidth, 0.1f, frustumHeight/2f);
-      background_plane.name = "Background";
-
-      /*
-      Vector3 temp = new Vector3(-frustumWidth/2.0f, 0.0f, -frustumHeight/2.0f);
-      GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-      cube.transform.position = temp;
-      Vector3 plane_scale = new Vector3(frustumWidth/2.0f, 0.01f, frustumHeight/2.0f);
-      */
-
-
-      //Material new_mat = Resources.Load("Bricks Textures/Bricks Texture 01/Bricks Texture 01") as Material;
-      //background_plane.GetComponent<Renderer>().material = new_mat;
-      //background_plane.GetComponent<Renderer>().material.shader = Shader.Find("Unlit/Texture");
-      ChangeBackground();
-
+      SetupCamera();
+      SpawnBackground();
 
     	knife = Resources.Load("Models/1_knife1/OBJ/Kitchenknife_lowpoly") as GameObject;
     	knife_a = Resources.Load("Models/1_knife1_a/OBJ/Kitchenknife_lowpoly") as GameObject;
@@ -228,15 +235,17 @@ public class NewScript : MonoBehaviour
     }
 
     void Start(){
+      //ChangeBackgroundTexture();
       SpawnModels();
     }
 
     // Update is called once per frame
     void Update(){
-      //Debug.Log(Camera.main.aspect);
       /*
+      ChangeBackgroundTexture();
+      SpawnModels();
       int frame_id = Time.frameCount;
-      if (frame_id < 30){
+      if (frame_id < 50){
         string img_filename = "img_" + Time.frameCount.ToString() + ".png";
         string img_full_path = img_path + img_filename;
 
@@ -247,5 +256,7 @@ public class NewScript : MonoBehaviour
         Debug.Log("Frame_id > 30");
       }
       */
+
+
     }
 }
