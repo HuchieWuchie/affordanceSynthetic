@@ -6,5 +6,6 @@ https://stackoverflow.com/questions/15261851/100x100-image-with-random-pixel-col
 
 # Download this repo into project folder and rename it
 ```
-git clone https://github.com/HuchieWuchie/ROB10.git && mv ROB10/ Assets
+cd /PATH/TO/YOUR/UNITY/PROJECT
+rm -r Assets && git clone https://github.com/HuchieWuchie/ROB10.git && mv ROB10/ Assets
 ```

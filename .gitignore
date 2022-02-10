@@ -208,6 +208,7 @@ crashlytics-build.properties
 # Custom Ignores for Unity
 *.cs.meta
 *.py.meta
+*.md.meta
 *.meta
 
 # End of https://www.toptal.com/developers/gitignore/api/unity
