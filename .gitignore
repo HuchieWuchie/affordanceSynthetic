@@ -209,6 +209,8 @@ crashlytics-build.properties
 *.cs.meta
 *.py.meta
 *.md.meta
+*.unity.meta
 *.meta
+Resources/Models/*
 
 # End of https://www.toptal.com/developers/gitignore/api/unity
