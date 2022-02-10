@@ -8,7 +8,7 @@ public class NewScript : MonoBehaviour
     private static int background_index = 0;
     private GameObject knife, knife_a, background_plane;
     private static string textfile_path = "/home/daniel/unity_first_test/screenshots/boundingBoxes.txt";
-    private static string img_path = "/home/daniel/unity_first_test/screenshots/";
+    //private static string img_path = "/home/daniel/unity_first_test/screenshots/";
     //private Camera main_cam;
 
     //public static Vector3[] GetBoundingBoxVertices(GameObject go) {

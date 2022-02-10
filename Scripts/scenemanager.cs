@@ -137,7 +137,7 @@ public class scenemanager : MonoBehaviour
     }
 
     public (List<GameObject>, List<GameObject>) InstantiateModels(List<datasetModel> modelList, int[] idxList){
-        
+
         List<GameObject> rgbObjects = new List<GameObject>();
         List<GameObject> maskObjects = new List<GameObject>();
 
@@ -173,7 +173,7 @@ public class scenemanager : MonoBehaviour
             GameObject modelMask = Instantiate(modelList[idx].prefab, position, rotation) as GameObject;
 
             /// Set texture
-            
+
             if (modelMask.TryGetComponent<Renderer>(out Renderer mRend))
             {
                 Renderer modelMaskRender;
@@ -198,17 +198,17 @@ public class scenemanager : MonoBehaviour
                     childObj.gameObject.AddComponent<MeshCollider>();
                     childObj.layer = LayerMask.NameToLayer("Mask");
                 }
-                
+
             }
             modelMask.transform.name = modelList[idx].label.ToString() + "_" + "model_mask" + identifier.ToString();
             modelRGB.transform.name = modelList[idx].label.ToString() + "_" + "model_RGB" + identifier.ToString();
-            
+
             identifier++;
 
 
             /// Transfer to mask camera layer
             modelMask.layer = LayerMask.NameToLayer("Mask");
-            
+
 
             maskObjects.Add(modelMask);
             rgbObjects.Add(modelRGB);
@@ -296,7 +296,7 @@ public class scenemanager : MonoBehaviour
         var bytes = tex.EncodeToPNG();
         File.WriteAllBytes(filename, bytes);
         cam.targetTexture = originalTargetTexture;
-         
+
     }
 
     void captureFrames(int frameID, string rgbFile, string maskFile)
@@ -355,7 +355,7 @@ public class scenemanager : MonoBehaviour
             // Add the light component
             Light lightComp = lightGameObject.AddComponent<Light>();
             lightComp.type = LightType.Directional;
-            
+
             //GameObject lightInst = Instantiate(lightGameObject, position, rotation);
 
             lights.Add(lightGameObject);
@@ -520,7 +520,7 @@ public class scenemanager : MonoBehaviour
         }
         return true;
     }
-        
+
     public static string GetBoundingBox(GameObject go)
     {
         Vector3[] verts = new Vector3[0];
@@ -569,7 +569,6 @@ public class scenemanager : MonoBehaviour
             max.y = min.y;
             min.y = temp;
         }
-        //Vector2[] output = new Vector2[2] { min, max };
 
         int min_x, min_y, max_x, max_y;
         min_x = (int)min.x;
@@ -583,7 +582,6 @@ public class scenemanager : MonoBehaviour
         + max_y.ToString() + "\n";
 
         return serializedData;
-        //return output;
     }
 
     void Awake()
@@ -614,23 +612,24 @@ public class scenemanager : MonoBehaviour
         System.IO.Directory.CreateDirectory(testRGBDir);
         System.IO.Directory.CreateDirectory(testMaskDir);
     }
+
     void Start()
-    { 
+    {
 
-        Camera camRGB = GameObject.Find("RGBCamera").GetComponent<Camera>();
-        Camera camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
+        //Camera camRGB = GameObject.Find("RGBCamera").GetComponent<Camera>();
+        //Camera camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
 
-        camRGB.enabled = false;
-        camAnnotation.enabled = false;
+        //camRGB.enabled = false;
+        //camAnnotation.enabled = false;
     }
 
-    
+
     void Update()
     {
         //if (Time.frameCount == 2)
         //{
 
-        
+
         var watch = new Stopwatch();
         watch.Start();
 
@@ -650,10 +649,11 @@ public class scenemanager : MonoBehaviour
         SetBackgroundTexture(backgroundPlane);
 
         // Spawn objects
-        int noInstances = GetNumberOfInstances(3, 10);
+        int noInstances = GetNumberOfInstances(4, 10);
         int[] indexList = GetObjectIndexes(noInstances, modelList.Count);
 
         (rgbObjects, maskObjects) = InstantiateModels(modelList, indexList);
+        print(rgbObjects.Count);
         for (int i = 0; i < rgbObjects.Count; i += 1)
         {
             // Scale to default scale
@@ -672,12 +672,12 @@ public class scenemanager : MonoBehaviour
             // Scale the objects randomly
             float randomScale = UnityEngine.Random.Range(0.5f, 5f);
             rgbObjects[i].transform.localScale = new Vector3(rgbObjects[i].transform.localScale.x * randomScale, rgbObjects[i].transform.localScale.y * randomScale, rgbObjects[i].transform.localScale.z * randomScale);
-            maskObjects[i].transform.localScale = new Vector3(maskObjects[i].transform.localScale.x * randomScale, maskObjects[i].transform.localScale.y * randomScale, maskObjects[i].transform.localScale.z * randomScale);              
+            maskObjects[i].transform.localScale = new Vector3(maskObjects[i].transform.localScale.x * randomScale, maskObjects[i].transform.localScale.y * randomScale, maskObjects[i].transform.localScale.z * randomScale);
 
         }
 
         // Randomize lights and illumination
-            
+
         lights = InstantiateLights(3);
         foreach (GameObject lightObj in lights)
         {
@@ -705,7 +705,7 @@ public class scenemanager : MonoBehaviour
 
         // Check for occlusions and remove occluded objects
         for (int i = 0; i < rgbObjects.Count; i += 1) {
-            List<int> indexesToDestroy = new List<int>();
+            //List<int> indexesToDestroy = new List<int>();
 
             bool visible = isVisible(maskObjects[i]); // Sending in mask object as it has the mesh collider
             if (visible == false)
@@ -720,7 +720,7 @@ public class scenemanager : MonoBehaviour
             {
                 rgbObjectsTemp.Add(rgbObjects[i]);
                 maskObjectsTemp.Add(maskObjects[i]);
-                string bb = GetBoundingBox(maskObjects[i]);
+                //string bb = GetBoundingBox(maskObjects[i]);
             }
             Physics.SyncTransforms();
         }
@@ -728,31 +728,32 @@ public class scenemanager : MonoBehaviour
         rgbObjects = rgbObjectsTemp;
         maskObjects = maskObjectsTemp;
 
-        // TO DO: Add distractors
+        if (maskObjects.Count > 0 && rgbObjects.Count > 0){
+            // TO DO: Add distractors
 
-        camRGB.Render();
-        camAnnotation.Render();
+            camRGB.Render();
+            camAnnotation.Render();
 
-        string rgbFile = Path.Combine(trainRGBDir, Time.frameCount.ToString() + ".png");
-        string maskFile = Path.Combine(trainMaskDir, Time.frameCount.ToString() + ".tga");
-        string bboxFile = Path.Combine(trainBboxDir, Time.frameCount.ToString() + ".txt");
+            string rgbFile = Path.Combine(trainRGBDir, Time.frameCount.ToString() + ".png");
+            string maskFile = Path.Combine(trainMaskDir, Time.frameCount.ToString() + ".tga");
+            string bboxFile = Path.Combine(trainBboxDir, Time.frameCount.ToString() + ".txt");
 
-        if (File.Exists(bboxFile))
-        {
-            File.Delete(bboxFile);
-        }
-
-        for (int i = 0; i < maskObjects.Count; i++)
-        {
-            string bbox = maskObjects[i].name.Split('_')[0] + " " + GetBoundingBox(maskObjects[i]);
-            using (StreamWriter writer = new StreamWriter(bboxFile, true))
+            if (File.Exists(bboxFile))
             {
-                writer.Write(bbox);
+                File.Delete(bboxFile);
             }
-        }
-        
 
-        captureFrames(Time.frameCount, rgbFile, maskFile);
+            for (int i = 0; i < maskObjects.Count; i++)
+            {
+                string bbox = maskObjects[i].name.Split('_')[0] + " " + GetBoundingBox(maskObjects[i]);
+                using (StreamWriter writer = new StreamWriter(bboxFile, true))
+                {
+                    writer.Write(bbox);
+                }
+            }
+
+            captureFrames(Time.frameCount, rgbFile, maskFile);
+        }
 
         DestroyAllModels(rgbObjects);
         DestroyAllModels(maskObjects);
@@ -767,5 +768,5 @@ public class scenemanager : MonoBehaviour
 
     }
 
-   
+
 }
