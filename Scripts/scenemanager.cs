@@ -41,7 +41,6 @@ public class scenemanager : MonoBehaviour
         public Texture textureMask;
         public Vector3 defaultScale;
         public string modelPath;
-
     }
 
     public List<datasetModel> GetDatasetModels(string rootDir)
@@ -75,16 +74,18 @@ public class scenemanager : MonoBehaviour
 
         return mList;
     }
+
     public Vector3 GetRandomPositionInCamera(Camera cam)
     {
+      /*
         System.Random rand = new System.Random();
         double x = 0.9 - (rand.NextDouble() * 0.8);
         double y = 0.9 - (rand.NextDouble() * 0.8);
         double z = 17.5 - (rand.NextDouble() * 5.0);
         Vector3 camera_pos = cam.ViewportToWorldPoint(new Vector3((float)x, (float)y, (float)z));
-
-        //Vector3 camera_pos = cam.ViewportToWorldPoint(new Vector3(UnityEngine.Random.Range(0.1f, 0.9f), UnityEngine.Random.Range(0.1f, 0.9f), UnityEngine.Random.Range(12.5f, 17.5f)));
-        Vector3 world_pos = new Vector3(camera_pos.x, camera_pos.y, camera_pos.z);
+        */
+        Vector3 world_pos = cam.ViewportToWorldPoint(new Vector3(UnityEngine.Random.Range(0.1f, 0.9f), UnityEngine.Random.Range(0.1f, 0.9f), UnityEngine.Random.Range(12.5f, 17.5f)));
+        //Vector3 world_pos = new Vector3(camera_pos.x, camera_pos.y, camera_pos.z);
         return world_pos;
     }
 
@@ -132,11 +133,10 @@ public class scenemanager : MonoBehaviour
         float scale = maxExtent / Mathf.Max(sizeArray);
         rgbInstance.transform.localScale = new Vector3(rgbInstance.transform.localScale.x * scale, rgbInstance.transform.localScale.y * scale, rgbInstance.transform.localScale.z * scale);
         maskInstance.transform.localScale = new Vector3(maskInstance.transform.localScale.x * scale, maskInstance.transform.localScale.y * scale, maskInstance.transform.localScale.z * scale);
-
-
     }
 
-    public (List<GameObject>, List<GameObject>) InstantiateModels(List<datasetModel> modelList, int[] idxList){
+    public (List<GameObject>, List<GameObject>) InstantiateModels(List<datasetModel> modelList, int[] idxList)
+    {
 
         List<GameObject> rgbObjects = new List<GameObject>();
         List<GameObject> maskObjects = new List<GameObject>();
@@ -216,7 +216,6 @@ public class scenemanager : MonoBehaviour
         }
 
         return (rgbObjects, maskObjects);
-
     }
 
     void SaveMask(Camera cam, string filename)
@@ -256,8 +255,6 @@ public class scenemanager : MonoBehaviour
         File.WriteAllBytes(filename, bytes);
 
         cam.targetTexture = originalTargetTexture;
-
-
     }
 
     void SaveCameraRGB(Camera cam, string filename)
@@ -296,18 +293,15 @@ public class scenemanager : MonoBehaviour
         var bytes = tex.EncodeToPNG();
         File.WriteAllBytes(filename, bytes);
         cam.targetTexture = originalTargetTexture;
-
     }
 
     void captureFrames(int frameID, string rgbFile, string maskFile)
     {
-
         var camRGB = GameObject.Find("RGBCamera").GetComponent<Camera>();
         SaveCameraRGB(camRGB, rgbFile);
 
         var camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
         SaveMask(camAnnotation, maskFile);
-
     }
 
     int GetNumberOfInstances(int min, int max)
@@ -584,6 +578,81 @@ public class scenemanager : MonoBehaviour
         return serializedData;
     }
 
+    public List<GameObject> spawnDistractors(Camera cam){
+      //Camera camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
+      System.Random rnd = new System.Random();
+      //int numberOfDistractotsToSpawn = ;
+      List<int> distractorsToSpawn = new List<int>();
+      List<GameObject> distractors = new List<GameObject>();
+
+      for (int i = 0; i < 10; i++){
+        distractorsToSpawn.Add((int)rnd.Next(5));
+      }
+
+      //print(distractorsToSpawn);
+      foreach (int distractor_id in distractorsToSpawn){
+        float scale_x = UnityEngine.Random.Range(0.5f,3f);
+        float scale_y = UnityEngine.Random.Range(0.5f,3f);
+        float scale_z = UnityEngine.Random.Range(0.5f,3f);
+        Vector3 rand_scale = new Vector3 (scale_x, scale_y, scale_z);
+        Color rand_color = new Color (UnityEngine.Random.Range(0F, 1F),
+                                      UnityEngine.Random.Range(0F, 1F),
+                                      UnityEngine.Random.Range(0F, 1F),
+                                      UnityEngine.Random.Range(0F, 1F));
+
+        switch (distractor_id)
+        {
+          case 0:
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.name = "cube_" + distractor_id.ToString();
+            cube.transform.position = GetRandomPositionInCamera(cam);
+            cube.transform.rotation = UnityEngine.Random.rotation;
+            cube.transform.localScale = rand_scale;
+            cube.GetComponent<MeshRenderer>().material.color = rand_color;
+            cube.AddComponent<MeshCollider>();
+            distractors.Add(cube);
+            break;
+          case 1:
+            GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.name = "sphere_" + distractor_id.ToString();
+            sphere.transform.position = GetRandomPositionInCamera(cam);
+            sphere.transform.rotation = UnityEngine.Random.rotation;
+            sphere.transform.localScale = rand_scale;
+            sphere.GetComponent<MeshRenderer>().material.color = rand_color;
+            sphere.AddComponent<MeshCollider>();
+            distractors.Add(sphere);
+            break;
+          case 2:
+            GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            capsule.transform.name = "capsule_" + distractor_id.ToString();
+            capsule.transform.position = GetRandomPositionInCamera(cam);
+            capsule.transform.rotation = UnityEngine.Random.rotation;
+            capsule.transform.localScale = rand_scale;
+            capsule.GetComponent<MeshRenderer>().material.color = rand_color;
+            capsule.AddComponent<MeshCollider>();
+            distractors.Add(capsule);
+            break;
+          case 4:
+            GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cylinder.transform.name = "cylinder_" + distractor_id.ToString();
+            cylinder.transform.position = GetRandomPositionInCamera(cam);
+            cylinder.transform.rotation = UnityEngine.Random.rotation;
+            cylinder.transform.localScale = rand_scale;
+            cylinder.GetComponent<MeshRenderer>().material.color = rand_color;
+            cylinder.AddComponent<MeshCollider>();
+            distractors.Add(cylinder);
+            break;
+        }
+      }
+      
+      return distractors;
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+      Destroy(this.gameObject);
+    }
+
     void Awake()
     {
         modelList = GetDatasetModels("Models");
@@ -615,21 +684,11 @@ public class scenemanager : MonoBehaviour
 
     void Start()
     {
-
-        //Camera camRGB = GameObject.Find("RGBCamera").GetComponent<Camera>();
-        //Camera camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
-
-        //camRGB.enabled = false;
-        //camAnnotation.enabled = false;
     }
 
 
     void Update()
     {
-        //if (Time.frameCount == 2)
-        //{
-
-
         var watch = new Stopwatch();
         watch.Start();
 
@@ -677,7 +736,6 @@ public class scenemanager : MonoBehaviour
         }
 
         // Randomize lights and illumination
-
         lights = InstantiateLights(3);
         foreach (GameObject lightObj in lights)
         {
@@ -728,6 +786,8 @@ public class scenemanager : MonoBehaviour
         rgbObjects = rgbObjectsTemp;
         maskObjects = maskObjectsTemp;
 
+        List<GameObject> distractors = spawnDistractors(camAnnotation);
+
         if (maskObjects.Count > 0 && rgbObjects.Count > 0){
             // TO DO: Add distractors
 
@@ -757,6 +817,7 @@ public class scenemanager : MonoBehaviour
 
         DestroyAllModels(rgbObjects);
         DestroyAllModels(maskObjects);
+        DestroyAllModels(distractors);
         DestroyAllModels(lights);
         Destroy(backgroundPlane);
 
