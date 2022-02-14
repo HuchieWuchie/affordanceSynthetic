@@ -137,7 +137,7 @@ public class scenemanager : MonoBehaviour
     }
 
     public (List<GameObject>, List<GameObject>) InstantiateModels(List<datasetModel> modelList, int[] idxList){
-        
+
         List<GameObject> rgbObjects = new List<GameObject>();
         List<GameObject> maskObjects = new List<GameObject>();
 
@@ -158,8 +158,8 @@ public class scenemanager : MonoBehaviour
             GameObject modelRGB = Instantiate(modelList[idx].prefab, position, rotation) as GameObject;
             /*
             GameObject modelRGB = new GameObject();
-            try 
-            { 
+            try
+            {
                 modelRGB = Instantiate(modelList[idx].prefab, position, rotation) as GameObject;
             }
             catch(ArgumentException e)
@@ -182,7 +182,7 @@ public class scenemanager : MonoBehaviour
                 {
                     mRendRGB.material.mainTexture = modelList[idx].textureRGB;
                 }
-                
+
             }
             else
             {
@@ -200,23 +200,24 @@ public class scenemanager : MonoBehaviour
                     {
                         childRendRGB.material.mainTexture = modelList[idx].textureRGB;
                     }
-                    
+
                 }
             }
 
 
             /// Transfer to rgb camera layer
             modelRGB.layer = LayerMask.NameToLayer("Default");
-            
+
             // Mask image ///////////////////////////////////////////////////////
             GameObject modelMask = Instantiate(modelList[idx].prefab, position, rotation) as GameObject;
-            
+
             /// Set texture
-            
+
             if (modelMask.TryGetComponent<Renderer>(out Renderer mRend))
             {
-                mRend.sharedMaterial.mainTexture = modelList[idx].textureMask;
-                mRend.sharedMaterial.shader = Shader.Find("Unlit/Texture");
+                mRend.material.mainTexture = modelList[idx].textureMask;
+                UnityEngine.Debug.Log("TextureMask " + modelList[idx].textureMask.ToString());
+                mRend.material.shader = Shader.Find("Unlit/Texture");
                 modelMask.AddComponent<MeshFilter>();
                 modelMask.AddComponent<MeshCollider>();
             }
@@ -225,8 +226,9 @@ public class scenemanager : MonoBehaviour
                 Renderer[] childRends = modelMask.GetComponentsInChildren<Renderer>();
                 foreach (Renderer childRend in childRends)
                 {
-                    childRend.sharedMaterial.mainTexture = modelList[idx].textureMask;
-                    childRend.sharedMaterial.shader = Shader.Find("Unlit/Texture");
+                    childRend.material.mainTexture = modelList[idx].textureMask;
+                    UnityEngine.Debug.Log("TextureMask " + modelList[idx].textureMask.ToString());
+                    childRend.material.shader = Shader.Find("Unlit/Texture");
                 }
                 for (int i = 0; i < modelMask.transform.childCount; i++)
                 {
@@ -235,11 +237,11 @@ public class scenemanager : MonoBehaviour
                     childObj.gameObject.AddComponent<MeshCollider>();
                     childObj.layer = LayerMask.NameToLayer("Mask");
                 }
-                
+
             }
             modelMask.transform.name = modelList[idx].label.ToString() + "_" + "model_mask" + identifier.ToString();
             modelRGB.transform.name = modelList[idx].label.ToString() + "_" + "model_RGB" + identifier.ToString();
-            
+
             identifier++;
 
 
@@ -303,8 +305,9 @@ public class scenemanager : MonoBehaviour
 
         cam.Render();
         RenderTexture.active = rt;
-        screenshotTex.Reinitialize(cam.pixelWidth, cam.pixelHeight);
+        screenshotTex.Resize(cam.pixelWidth, cam.pixelHeight);
         screenshotTex.ReadPixels(new Rect(0, 0, cam.pixelWidth, cam.pixelHeight), 0, 0);
+        screenshotTex.Apply();
 
         cam.targetTexture = null;
         RenderTexture.active = null; // JC: added to avoid errors
@@ -313,29 +316,27 @@ public class scenemanager : MonoBehaviour
         rt = null;
         Destroy(rt);
 
-        byte[] bytes = screenshotTex.EncodeToPNG();
+        byte[] bytes = screenshotTex.EncodeToTGA();
         System.IO.File.WriteAllBytes(filename, bytes);
-
-
     }
 
     void SaveCameraRGB(Camera cam, string filename)
     {
-        
+
         RenderTexture rt = RenderTexture.GetTemporary(cam.pixelWidth, cam.pixelHeight, 24);
         cam.targetTexture = rt;
 
         cam.Render();
         RenderTexture.active = rt;
-        screenshotTex.Reinitialize(cam.pixelWidth, cam.pixelHeight);
+        screenshotTex.Resize(cam.pixelWidth, cam.pixelHeight);
         screenshotTex.ReadPixels(new Rect(0, 0, cam.pixelWidth, cam.pixelHeight), 0, 0);
 
         cam.targetTexture = null;
         RenderTexture.active = null; // JC: added to avoid errors
         RenderTexture.ReleaseTemporary(rt);
-        
+
         rt = null;
-        Destroy(rt);    
+        Destroy(rt);
 
         byte[] bytes = screenshotTex.EncodeToPNG();
         System.IO.File.WriteAllBytes(filename, bytes);
@@ -366,7 +367,8 @@ public class scenemanager : MonoBehaviour
         for (int i = 0; i < idxList.Length; i += 1)
         {
             System.Random rand = new System.Random();
-            idxList[i] = rand.Next(0, noObjects - 1);
+            //idxList[i] = rand.Next(0, noObjects - 1);
+            idxList[i] = (int) UnityEngine.Random.Range(0, noObjects - 1);
         }
 
         return (idxList);
@@ -396,7 +398,7 @@ public class scenemanager : MonoBehaviour
             // Add the light component
             Light lightComp = lightGameObject.AddComponent<Light>();
             lightComp.type = LightType.Directional;
-            
+
             //GameObject lightInst = Instantiate(lightGameObject, position, rotation);
 
             lights.Add(lightGameObject);
@@ -407,7 +409,7 @@ public class scenemanager : MonoBehaviour
 
     GameObject ResizeBackgroundToCameraView(ref GameObject background_plane, Camera cam)
     {
-        
+
         // TODO - Get the distance from the camera pose
 
         float distance = 120f;
@@ -516,12 +518,12 @@ public class scenemanager : MonoBehaviour
                         pixelVal[p] = multiplier[p] * val;
                     }
                 }
-                
+
                 pixels[(int)y * width + (int)x] = pixelVal;
 
             }
         }
-        
+
         // Copy the pixel data to the texture and load it into the GPU.
         randomizedTexture.SetPixels(pixels);
         randomizedTexture.Apply();
@@ -530,7 +532,7 @@ public class scenemanager : MonoBehaviour
 
         //return (texIn);
          return (randomizedTexture);
-        
+
     }
 
     Vector3[] GetMeshVertices(GameObject go)
@@ -587,14 +589,14 @@ public class scenemanager : MonoBehaviour
 
     private bool isVisible(GameObject go)
     {
-        
+
         //bool visible = true;
         string go_root_name = go.transform.root.name;
 
-               
+
         return false; // added for debugging
         /*
-        
+
         foreach (Vector3 vert in verts)
         {
             RaycastHit hit;
@@ -619,7 +621,7 @@ public class scenemanager : MonoBehaviour
         return true;
         */
     }
-        
+
     Vector4 GetBoundingBoxInCamera(GameObject go, Camera cam)
     {
         Vector3[] verts = GetMeshVertices(go);
@@ -668,6 +670,106 @@ public class scenemanager : MonoBehaviour
         return (true);
     }
 
+    private List<GameObject> spawnDistractors(Camera cam)
+    {
+      //Camera camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
+      //System.Random rnd = new System.Random();
+      //int numberOfDistractotsToSpawn = ;
+      List<int> distractorsToSpawn = new List<int>();
+      List<GameObject> distractors = new List<GameObject>();
+      int numberOfDistractotsToSpawn = UnityEngine.Random.Range(5, 10);
+      for (int i = 0; i < 15; i++){
+        distractorsToSpawn.Add(UnityEngine.Random.Range(0, 5));
+      }
+
+      //print(distractorsToSpawn);
+      int id = 0;
+      foreach (int distractor_id in distractorsToSpawn) {
+        float scale_x = UnityEngine.Random.Range(0.5f,5f);
+        float scale_y = UnityEngine.Random.Range(0.5f,5f);
+        float scale_z = UnityEngine.Random.Range(0.5f,5f);
+        Vector3 rand_scale = new Vector3 (scale_x, scale_y, scale_z);
+        Color rand_color = new Color (UnityEngine.Random.Range(0F, 1F),
+                                      UnityEngine.Random.Range(0F, 1F),
+                                      UnityEngine.Random.Range(0F, 1F),
+                                      UnityEngine.Random.Range(0F, 1F));
+        int colourOrTexture = UnityEngine.Random.Range(0,100);
+
+        switch (distractor_id)
+        {
+          case 0:
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.transform.name = "cube_" + id.ToString();
+            go.transform.position = GetRandomPositionInCamera(cam);
+            go.transform.rotation = UnityEngine.Random.rotation;
+            go.transform.localScale = rand_scale;
+            if (colourOrTexture <= 50){
+              Texture2D tex = new Texture2D(128, 128);
+              tex = RandomizeTexture(ref tex);
+              go.GetComponent<MeshRenderer>().material.mainTexture = tex;
+              Destroy(tex);
+            } else {
+              go.GetComponent<MeshRenderer>().material.color = rand_color;
+            }
+            distractors.Add(go);
+            break;
+
+          case 1:
+            go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            go.transform.name = "sphere_" + id.ToString();
+            go.transform.position = GetRandomPositionInCamera(cam);
+            go.transform.rotation = UnityEngine.Random.rotation;
+            go.transform.localScale = rand_scale;
+            if (colourOrTexture <= 50){
+              Texture2D tex = new Texture2D(128, 128);
+              tex = RandomizeTexture(ref tex);
+              go.GetComponent<MeshRenderer>().material.mainTexture = tex;
+              Destroy(tex);
+            } else {
+              go.GetComponent<MeshRenderer>().material.color = rand_color;
+            }
+            distractors.Add(go);
+            break;
+
+          case 2:
+            go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            go.transform.name = "capsule_" + id.ToString();
+            go.transform.position = GetRandomPositionInCamera(cam);
+            go.transform.rotation = UnityEngine.Random.rotation;
+            go.transform.localScale = rand_scale;
+            if (colourOrTexture <= 50){
+              Texture2D tex = new Texture2D(128, 128);
+              tex = RandomizeTexture(ref tex);
+              go.GetComponent<MeshRenderer>().material.mainTexture = tex;
+              Destroy(tex);
+            } else {
+              go.GetComponent<MeshRenderer>().material.color = rand_color;
+            }
+            distractors.Add(go);
+            break;
+
+          case 3:
+            go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.transform.name = "cylinder_" + id.ToString();
+            go.transform.position = GetRandomPositionInCamera(cam);
+            go.transform.rotation = UnityEngine.Random.rotation;
+            go.transform.localScale = rand_scale;
+            if (colourOrTexture <= 50){
+              Texture2D tex = new Texture2D(128, 128);
+              tex = RandomizeTexture(ref tex);
+              go.GetComponent<MeshRenderer>().material.mainTexture = tex;
+              Destroy(tex);
+            } else {
+              go.GetComponent<MeshRenderer>().material.color = rand_color;
+            }
+            distractors.Add(go);
+            break;
+        }
+        id++;
+      }
+      return distractors;
+    }
+
     void Awake()
     {
         modelList = GetDatasetModels("Models");
@@ -707,14 +809,14 @@ public class scenemanager : MonoBehaviour
 
     }
     void Start()
-    { 
+    {
 
         Camera camRGB = GameObject.Find("RGBCamera").GetComponent<Camera>();
         Camera camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
 
         camRGB.enabled = false;
         camAnnotation.enabled = false;
-        
+
         backgroundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         backgroundPlane.transform.position = new Vector3(0.0f, -100.0f, 0.0f);
         backgroundPlane.name = "Background";
@@ -725,7 +827,7 @@ public class scenemanager : MonoBehaviour
 
     }
 
-    
+
     void Update()
     {
 
@@ -743,16 +845,16 @@ public class scenemanager : MonoBehaviour
 
 
         // Set background texture
-        backgroundPlane = ResizeBackgroundToCameraView(ref backgroundPlane, camAnnotation); 
+        backgroundPlane = ResizeBackgroundToCameraView(ref backgroundPlane, camAnnotation);
         backgroundTexture = RandomizeTexture(ref backgroundTexture);
         backgroundMaterial.mainTexture = backgroundTexture;
-        
+
 
        // Spawn objects
        int noInstances = GetNumberOfInstances(3, 25);
        int[] indexList = GetObjectIndexes(noInstances, modelList.Count);
 
-        
+
         (rgbObjects, maskObjects) = InstantiateModels(modelList, indexList);
         for (int i = 0; i < rgbObjects.Count; i += 1)
         {
@@ -784,10 +886,7 @@ public class scenemanager : MonoBehaviour
 
             rgbObjects[i].transform.localScale = newLocalScale;
             maskObjects[i].transform.localScale = newLocalScale;
-
-
         }
-        
         // Randomize lights and illumination
 
         lights = InstantiateLights(3);
@@ -816,7 +915,6 @@ public class scenemanager : MonoBehaviour
         List<GameObject> maskObjectsTemp = new List<GameObject>();
         List<Vector4> bboxs = new List<Vector4>();
 
-
         // Check for occlusions and remove occluded objects
         for (int i = 0; i < rgbObjects.Count; i += 1) {
 
@@ -840,6 +938,7 @@ public class scenemanager : MonoBehaviour
             {
                 noOcclusion = false;
             }
+
             if (noOcclusion == true)
             {
                 rgbObjectsTemp.Add(rgbObjects[i]);
@@ -855,10 +954,33 @@ public class scenemanager : MonoBehaviour
             }
             Physics.SyncTransforms();
         }
-
         rgbObjects = rgbObjectsTemp;
         maskObjects = maskObjectsTemp;
 
+        List<GameObject> distractors = new List<GameObject>();
+        distractors = spawnDistractors(camAnnotation);
+        List<Vector4> bboxsDistractors = new List<Vector4>();
+        //spawn distractors
+        for (int i = 0; i < distractors.Count; i += 1) {
+            bool noOcclusion = true;
+            Vector4 bboxDistractor = GetBoundingBoxInCamera(distractors[i], camAnnotation); // Sending in mask object as it has the mesh collider
+
+            for (int j = 0; j < bboxs.Count; j++)
+            {
+                // Check if boxes intersects
+                bool intersects = BBoxIntersects(bboxs[j], bboxDistractor);
+                if (intersects == true)
+                {
+                    noOcclusion = false;
+                }
+            }
+
+            if (noOcclusion == false)
+            {
+                distractors[i].transform.position = new Vector3(1000f, 0f, 0f);
+            }
+            Physics.SyncTransforms();
+        }
 
         if (maskObjects.Count > 0 && rgbObjects.Count > 0)
         {
@@ -889,9 +1011,10 @@ public class scenemanager : MonoBehaviour
 
             captureFrames(Time.frameCount, rgbFile, maskFile);
         }
-        
+
         DestroyAllModels(rgbObjects);
-        DestroyAllModels(maskObjects);   
+        DestroyAllModels(maskObjects);
+        DestroyAllModels(distractors);
         DestroyAllModels(lights);
 
         watch.Stop();
