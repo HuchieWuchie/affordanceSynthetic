@@ -216,9 +216,13 @@ public class scenemanager : MonoBehaviour
             if (modelMask.TryGetComponent<Renderer>(out Renderer mRend))
             {
                 mRend.material.mainTexture = modelList[idx].textureMask;
-                UnityEngine.Debug.Log("TextureMask " + modelList[idx].textureMask.ToString());
+                //UnityEngine.Debug.Log("TextureMask " + modelList[idx].textureMask.ToString());
                 mRend.material.shader = Shader.Find("Unlit/Texture");
-                modelMask.AddComponent<MeshFilter>();
+                if (modelMask.GetComponent<MeshFilter>() == null)
+                {
+                    modelMask.AddComponent<MeshFilter>();
+                }
+                
                 modelMask.AddComponent<MeshCollider>();
             }
             else
@@ -227,13 +231,16 @@ public class scenemanager : MonoBehaviour
                 foreach (Renderer childRend in childRends)
                 {
                     childRend.material.mainTexture = modelList[idx].textureMask;
-                    UnityEngine.Debug.Log("TextureMask " + modelList[idx].textureMask.ToString());
+                    //UnityEngine.Debug.Log("TextureMask " + modelList[idx].textureMask.ToString());
                     childRend.material.shader = Shader.Find("Unlit/Texture");
                 }
                 for (int i = 0; i < modelMask.transform.childCount; i++)
                 {
                     GameObject childObj = modelMask.transform.GetChild(i).gameObject;
-                    childObj.gameObject.AddComponent<MeshFilter>();
+                    if (childObj.gameObject.GetComponent<MeshFilter>() == null)
+                    {
+                        childObj.gameObject.AddComponent<MeshFilter>();
+                    }
                     childObj.gameObject.AddComponent<MeshCollider>();
                     childObj.layer = LayerMask.NameToLayer("Mask");
                 }
