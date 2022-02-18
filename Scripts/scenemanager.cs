@@ -542,7 +542,12 @@ public class scenemanager : MonoBehaviour
         // grap mesh filter of parent if available otherwise of children
         if (go.TryGetComponent<MeshFilter>(out MeshFilter mMeshF))
         {
-            verts = mMeshF.sharedMesh.vertices;
+            Vector3[] verts_local = mMeshF.mesh.vertices;
+            for (int j = 0; j < verts_local.Length; j++)
+            {
+                verts_local[j] = go.transform.TransformPoint(verts_local[j]);
+            }
+            verts = verts_local;
         }
 
         else
@@ -552,13 +557,18 @@ public class scenemanager : MonoBehaviour
                 GameObject childObj = go.transform.GetChild(i).gameObject;
                 try
                 {
-                    verts = verts.Concat(childObj.GetComponent<MeshFilter>().sharedMesh.vertices).ToArray();
+                    Vector3[] verts_local = childObj.GetComponent<MeshFilter>().mesh.vertices;
+                    for (int j = 0; j < verts_local.Length; j++)
+                    {
+                        verts_local[j] = childObj.transform.TransformPoint(verts_local[j]);
+                    }
+                    verts = verts.Concat(verts_local).ToArray();
                 }
-                catch(NullReferenceException e)
+                catch (NullReferenceException e)
                 {
                     print(go.name);
                     print(go.transform.name);
-                    verts = verts.Concat(childObj.GetComponent<MeshFilter>().sharedMesh.vertices).ToArray();
+                    verts = verts.Concat(childObj.GetComponent<MeshFilter>().mesh.vertices).ToArray();
                 }
             }
 
@@ -628,7 +638,7 @@ public class scenemanager : MonoBehaviour
 
         for (int i = 0; i < verts.Length; i++)
         {
-            verts[i] = cam.WorldToScreenPoint(go.transform.TransformPoint(verts[i]));
+            verts[i] = cam.WorldToScreenPoint(verts[i]);
         }
         Vector2 min = verts[0];
         Vector2 max = verts[0];
