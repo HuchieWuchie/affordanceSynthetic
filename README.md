@@ -14,9 +14,9 @@ mv affordanceSynthetic/ Assets
 ```
 
 ## 3. Download the models
-In order to use this generator, you must first download the annotated models from the following link:
-https://drive.google.com/drive/folders/1k9gZXCKIrNwlfj3wfRI7sB72yN8cxc85?usp=sharing
+In order to use this generator, you must first download the annotated models from the following link: https://drive.google.com/drive/folders/1k9gZXCKIrNwlfj3wfRI7sB72yN8cxc85?usp=sharing
 
-After the download is completed, extract the zip file, and place the "Models" folder within your Assets folder.
+After the download is completed, extract the zip file, and place the *Models* folder within your project's *Assets/Resources* folder.
 
 ## 4. Build and run the project
+There might be some warnings after initial import of the models.
