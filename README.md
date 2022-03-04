@@ -1,5 +1,5 @@
 # Introduction
-This repository contains the implementation of the synthetic dataset generator for the affordance segmentation. The generator was build using the Unity game engine, and the repository itself is the Unity project and, therefore, has be to launched and modified within the Unity editor. The figure bellow shows the sample of the images that the generator produces.
+This repository contains the implementation of the synthetic dataset generator for the affordance segmentation in our paper "Learning to Segment Object Affordances on Synthetic Data for Task-oriented Robotic Handovers". The generator was build using the Unity game engine, and the repository itself is the Unity project and, therefore, has be to launched and modified within the Unity editor. The figure bellow shows the sample of the images that the generator produces.
 
 ![](dataset_sample.png)
 
