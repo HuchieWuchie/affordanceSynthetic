@@ -18,10 +18,10 @@ public class scenemanager : MonoBehaviour
     string trainBboxDir;
     string trainMaskDir;
 
-    string testDir;
-    string testRGBDir;
-    string testBboxDir;
-    string testMaskDir;
+    //string testDir;
+    //string testRGBDir;
+    //string testBboxDir;
+    //string testMaskDir;
 
     List<GameObject> rgbObjects;
     List<GameObject> maskObjects;
@@ -222,7 +222,7 @@ public class scenemanager : MonoBehaviour
                 {
                     modelMask.AddComponent<MeshFilter>();
                 }
-                
+
                 modelMask.AddComponent<MeshCollider>();
             }
             else
@@ -798,10 +798,10 @@ public class scenemanager : MonoBehaviour
         trainBboxDir = Path.Combine(trainDir, "object_labels");
         trainMaskDir = Path.Combine(trainDir, "masks");
 
-        testDir = Path.Combine(datasetDir, "test");
-        testRGBDir = Path.Combine(testDir, "images");
-        testBboxDir = Path.Combine(testDir, "object_labels");
-        testMaskDir = Path.Combine(testDir, "masks");
+        //testDir = Path.Combine(datasetDir, "test");
+        //testRGBDir = Path.Combine(testDir, "images");
+        //testBboxDir = Path.Combine(testDir, "object_labels");
+        //testMaskDir = Path.Combine(testDir, "masks");
 
         System.IO.Directory.CreateDirectory(datasetDir);
 
@@ -810,10 +810,10 @@ public class scenemanager : MonoBehaviour
         System.IO.Directory.CreateDirectory(trainRGBDir);
         System.IO.Directory.CreateDirectory(trainMaskDir);
 
-        System.IO.Directory.CreateDirectory(testDir);
-        System.IO.Directory.CreateDirectory(testBboxDir);
-        System.IO.Directory.CreateDirectory(testRGBDir);
-        System.IO.Directory.CreateDirectory(testMaskDir);
+        //System.IO.Directory.CreateDirectory(testDir);
+        //System.IO.Directory.CreateDirectory(testBboxDir);
+        //System.IO.Directory.CreateDirectory(testRGBDir);
+        //System.IO.Directory.CreateDirectory(testMaskDir);
 
         camRGB = GameObject.Find("RGBCamera").GetComponent<Camera>();
         camAnnotation = GameObject.Find("AnnotationCamera").GetComponent<Camera>();
