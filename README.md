@@ -8,7 +8,7 @@ The pictures on the left are the RGB images, the pictures on the right are the c
 The generated dataset including the ground truth is saved in the **dataset/train** folder within the project folder.
 
 # Affiliated repositories
-The AffNet-DR network can be found here: https://github.com/HuchieWuchie/affnetDR
+The AffNet-DR network can be found here: https://github.com/HuchieWuchie/affnetDR <br/>
 The ROS node implementation for the Little Helper robot can be found here: https://github.com/HuchieWuchie/affnetDRROS
 
 # Installation guide
