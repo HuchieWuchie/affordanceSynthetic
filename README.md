@@ -1,15 +1,15 @@
 # Introduction
-This repository contains the implementation of the synthetic dataset generator for affordance segmenetation. The generator was build using the Unity game engine. The repository itself is the Unity project and has be to launched and modified within the Unity editor. The figure bellow shows the sample of the images that the generator produces.
+This repository contains the implementation of the synthetic dataset generator for the affordance segmentation. The generator was build using the Unity game engine, and the repository itself is the Unity project and, therefore, has be to launched and modified within the Unity editor. The figure bellow shows the sample of the images that the generator produces.
 
 ![](dataset_sample.png)
 
 The pictures on the left are the RGB images, the pictures on the right are the corresponding annonated masks. With addition to masks, the generator also outputs a class label and a bounding box for each rendered object.
 
-The generated dataset is saved in the **dataset/train** folder within the project folder.
+The generated dataset including the ground truth is saved in the **dataset/train** folder within the project folder.
 
 # Affiliated repositories
-The AffNet-DR network can be found here -  engine can be found here: https://github.com/HuchieWuchie/affnetDR
-The ROS node implementation for the UR5 robot can be found here: https://github.com/HuchieWuchie/affnetDRROS
+The AffNet-DR network can be found here: https://github.com/HuchieWuchie/affnetDR
+The ROS node implementation for the Little Helper robot can be found here: https://github.com/HuchieWuchie/affnetDRROS
 
 # Installation guide
 This software was tested with Unity Editor version 2020.3.26f1 on both Windows 10 and Ubuntu 18.04.
