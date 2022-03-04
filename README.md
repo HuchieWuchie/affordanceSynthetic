@@ -12,7 +12,9 @@ In order to use this generator, you must first download the annotated models fro
 After the download is completed, extract the zip file, and place the *Models* folder within the project's *Assets/Resources* folder.
 
 ## 3. Open the project using Unity Hub
-It might take some time to import all the models. Some warnings regarding normals will pop up in the Unity console window the first time you import the models, see figure. These should be disregarded and will disappear next time you open the project.
+It might take some time to import all the models. Some warnings regarding normals will pop up in the Unity console window the first time you import the models, see the picture bellow. These should be disregarded and will disappear next time you open the project.
+
+![](unity_warnings.png)
 
 After the project opens, perform the following steps:
   - Load *SampleScene*
@@ -22,7 +24,6 @@ After the project opens, perform the following steps:
 ## 4. Build and run the project
 IMPORTANT - do not just press Play button. This will not work. Build and Run the project using Ctrl + B shortcut or by selecting Build and Run from the File drop-down menu
 
-## 5. Optinal - test the bounding 
 
 # Authors
 Albert Christensen, Department of Electronic Systems, Aalborg University<br/>
