@@ -7,6 +7,10 @@ The pictures on the left are the RGB images, the pictures on the right are the c
 
 The generated dataset is saved in the **dataset/train** folder within the project folder.
 
+# Affiliated repositories
+The AffNet-DR network can be found here -  engine can be found here: https://github.com/HuchieWuchie/affnetDR
+The ROS node implementation for the UR5 robot can be found here: https://github.com/HuchieWuchie/affnetDRROS
+
 # Installation guide
 This software was tested with Unity Editor version 2020.3.26f1 on both Windows 10 and Ubuntu 18.04.
 
