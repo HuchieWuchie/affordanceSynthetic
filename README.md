@@ -6,6 +6,7 @@ This repository contains the implementation of the synthetic dataset generator f
 The pictures on the left are the RGB images, the pictures on the right are the corresponding annonated masks. With addition to masks, the generator also outputs a class label and a bounding box for each rendered object.
 
 The generated dataset including the ground truth is saved in the **dataset/train** folder within the project folder.
+A synthetic dataset already generated can be downloaded from here https://drive.google.com/file/d/1yRL2JbZhZEsL2O9fKbM_DDJ7U53dogkl/view?usp=sharing
 
 # Affiliated repositories
 The AffNet-DR network can be found here: https://github.com/HuchieWuchie/affnetDR <br/>
